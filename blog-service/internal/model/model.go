@@ -1,5 +1,16 @@
 package model
 
+import (
+	"blog-service/global"
+	"blog-service/pkg/setting"
+	"fmt"
+	"gorm.io/driver/mysql"
+	_ "gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
+)
+
 // Model 公共model，大家都有的属性
 type Model struct {
 	ID         uint32 `gorm:"primary_key" json:"id"`
@@ -11,41 +22,30 @@ type Model struct {
 	IsDel      uint8  `json:"is_del"`
 }
 
-// Tag 博客标签对应的model
-type Tag struct {
-	*Model
-	Name  string `json:"name"`
-	State uint8  `json:"state"`
-}
+// NewDBEngine 创建一个新的DBEngine
+func NewDBEngine(databaseSetting *setting.DatabaseSettingS) (*gorm.DB, error) {
+	s := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s&parseTime=%t&loc=Local",
+		databaseSetting.Username,
+		databaseSetting.Password,
+		databaseSetting.Host,
+		databaseSetting.DBName,
+		databaseSetting.Charset,
+		databaseSetting.ParseTime)
+	db, err := gorm.Open(mysql.Open(s), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   databaseSetting.TablePrefix,
+			SingularTable: true,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if global.ServerSetting.RunMode == "debug" {
+		db.Logger = logger.Default.LogMode(logger.Info)
+	}
+	sqlDB, err := db.DB()
 
-// TableName Tag的数据库中的对应的表名
-func (t Tag) TableName() string {
-	return "blog_tag"
-}
-
-// Article 文章对应的model
-type Article struct {
-	*Model
-	Title         string `json:"title"`
-	Desc          string `json:"desc"`
-	CoverImageUrl string `json:"cover_image_url"`
-	Content       string `json:"content"`
-	State         uint8  `json:"state"`
-}
-
-// TableName Article的数据库中对应的表名
-func (a Article) TableName() string {
-	return "blog_article"
-}
-
-// ArticleTag 文章和标签之间的对应关系表
-type ArticleTag struct {
-	*Model
-	TagID     uint32 `json:"tag_id"`
-	ArticleID uint32 `json:"article_id"`
-}
-
-// TableName Article和Tag关系的数据库中对应的表名
-func (a ArticleTag) TableName() string {
-	return "blog_article_tag"
+	sqlDB.SetMaxIdleConns(databaseSetting.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(databaseSetting.MaxOpenConns)
+	return db, nil
 }
