@@ -1,5 +1,10 @@
 package service
 
+import (
+	"blog-service/internal/model"
+	"blog-service/pkg/app"
+)
+
 type CountTagRequest struct {
 	Name  string `form:"name" binding:"max=100"`
 	State uint8  `form:"state,default=1" binding:"oneof=0 1"`
@@ -21,4 +26,29 @@ type UpdateTagRequest struct {
 }
 type DeleteTagRequest struct {
 	ID uint32 `form:"id" binding:"required,gte=1"`
+}
+
+// CountTag 以入参标准的Request结构体作为参数，确保入参是对的 获取符合条件的Tag个数
+func (svc *Service) CountTag(param *CountTagRequest) (int64, error) {
+	return svc.dao.CountTag(param.Name, param.State)
+}
+
+// GetTagList 以入参标准的Request结构体作为参数，确保入参是对的,获取符合条件的Tag列表
+func (svc *Service) GetTagList(param *TagListRequest, pager *app.Pager) ([]*model.Tag, error) {
+	return svc.dao.GetTagList(param.Name, param.State, pager.Page, pager.PageSize)
+}
+
+// CreateTag 以入参标准的Request结构体作为参数，确保入参是对的,创建Tag
+func (svc *Service) CreateTag(param *CreateTagRequest) error {
+	return svc.dao.CreateTag(param.Name, param.State, param.CreatedBy)
+}
+
+// UpdateTag 以入参标准的Request结构体作为参数，确保入参是对的,修改Tag
+func (svc *Service) UpdateTag(param *UpdateTagRequest) error {
+	return svc.dao.UpdateTag(param.ID, param.Name, param.State, param.ModifiedBy)
+}
+
+// DeleteTag 以入参标准的Request结构体作为参数，确保入参是对的,删除Tag
+func (svc *Service) DeleteTag(param *DeleteTagRequest) error {
+	return svc.dao.DeleteTag(param.ID)
 }

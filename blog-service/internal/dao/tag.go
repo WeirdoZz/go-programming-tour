@@ -1,0 +1,58 @@
+package dao
+
+import (
+	"blog-service/internal/model"
+	"blog-service/pkg/app"
+)
+
+// CountTag 计算有多少个同名标签
+func (d *Dao) CountTag(name string, state uint8) (int64, error) {
+	tag := model.Tag{
+		Name:  name,
+		State: state,
+	}
+	return tag.Count(d.engine)
+}
+
+// GetTagList 获取全部同名参数
+func (d *Dao) GetTagList(name string, state uint8, page, pageSize int) ([]*model.Tag, error) {
+	tag := model.Tag{
+		Name:  name,
+		State: state,
+	}
+	pageOffset := app.GetPageOffset(page, pageSize)
+	return tag.List(d.engine, pageOffset, pageSize)
+}
+
+// CreateTag 创建新标签
+func (d *Dao) CreateTag(name string, state uint8, createdBy string) error {
+	tag := model.Tag{
+		Name:  name,
+		State: state,
+		Model: &model.Model{CreatedBy: createdBy},
+	}
+	return tag.Create(d.engine)
+}
+
+// UpdateTag 更新标签内容
+func (d *Dao) UpdateTag(id uint32, name string, state uint8, modifiedBy string) error {
+	tag := model.Tag{
+		Name:  name,
+		State: state,
+		Model: &model.Model{
+			ID:         id,
+			ModifiedBy: modifiedBy,
+		},
+	}
+	return tag.Update(d.engine)
+}
+
+// DeleteTag 删除标签
+func (d *Dao) DeleteTag(id uint32) error {
+	tag := model.Tag{
+		Model: &model.Model{
+			ID: id,
+		},
+	}
+	return tag.Delete(d.engine)
+}
