@@ -14,11 +14,15 @@ type ServerSettingS struct {
 }
 
 type AppSettingS struct {
-	DefaultPageSize int
-	MaxPageSize     int
-	LogSavePath     string
-	LogFileName     string
-	LogFileExt      string
+	DefaultPageSize      int
+	MaxPageSize          int
+	LogSavePath          string
+	LogFileName          string
+	LogFileExt           string
+	UploadSavePath       string
+	UploadServerUrl      string
+	UploadImageMaxSize   int
+	UploadImageAllowExts []string
 }
 
 type DatabaseSettingS struct {
@@ -32,6 +36,12 @@ type DatabaseSettingS struct {
 	ParseTime    bool
 	MaxIdleConns int
 	MaxOpenConns int
+}
+
+type JWTSettingS struct {
+	Secret string
+	Issuer string
+	Expire time.Duration
 }
 
 // ReadSection 按照区段读取配置信息

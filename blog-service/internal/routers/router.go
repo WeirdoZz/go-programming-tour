@@ -2,11 +2,14 @@ package routers
 
 import (
 	_ "blog-service/docs"
+	"blog-service/global"
 	"blog-service/internal/middleware"
+	"blog-service/internal/routers/api"
 	v1 "blog-service/internal/routers/api/v1"
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"net/http"
 )
 
 func NewRouter() *gin.Engine {
@@ -19,8 +22,17 @@ func NewRouter() *gin.Engine {
 	article := v1.NewArticle()
 	tag := v1.NewTag()
 
+	// swagger 管理器的url
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// 上传文件的路由
+	upload := api.NewUpload()
+	r.POST("/upload/file", upload.UploadFile)
+	//提供静态资源的访问
+	r.StaticFS("/static", http.Dir(global.AppSetting.UploadSavePath))
+
+	// auth验证路由
+	r.GET("/auth", api.GetAuth)
 	apiv1 := r.Group("/api/v1")
 	{
 		//针对标签管理的操作

@@ -61,9 +61,12 @@ func (t Tag) Create(db *gorm.DB) error {
 }
 
 // Update 修改数据库中该标签内容
-func (t Tag) Update(db *gorm.DB) error {
-	db = db.Model(&Tag{}).Where("id=? AND is_del=?", t.ID, 0)
-	return db.Updates(t).Error
+func (t Tag) Update(db *gorm.DB, values interface{}) error {
+	err := db.Model(t).Where("id=? AND is_del=?", t.ID, 0).Updates(values).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Delete 数据库中删除该标签
