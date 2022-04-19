@@ -6,18 +6,37 @@ import (
 	"blog-service/internal/middleware"
 	"blog-service/internal/routers/api"
 	v1 "blog-service/internal/routers/api/v1"
+	"blog-service/pkg/limiter"
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"net/http"
+	"time"
+)
+
+var methodLimiters = limiter.NewMethodLimiter().AddBuckets(
+	limiter.LimiterBucketRule{
+		Key:          "/auth",
+		FillInterval: time.Second,
+		Capacity:     10,
+		Quantum:      10,
+	},
 )
 
 func NewRouter() *gin.Engine {
 	r := gin.New()
-	r.Use(gin.Logger(),
-		gin.Recovery(),
-		middleware.Translations(),
-	)
+	if global.ServerSetting.RunMode == "debug" {
+		r.Use(gin.Logger(),
+			gin.Recovery(),
+		)
+	} else {
+		r.Use(middleware.AccessLog())
+		r.Use(middleware.Recovery())
+	}
+	r.Use(middleware.RateLimiter(methodLimiters))
+	r.Use(middleware.ContextTimeout(global.AppSetting.DefaultContextTimeout))
+	r.Use(middleware.Translations())
+	r.Use(middleware.Tracing())
 
 	article := v1.NewArticle()
 	tag := v1.NewTag()
@@ -34,6 +53,7 @@ func NewRouter() *gin.Engine {
 	// auth验证路由
 	r.GET("/auth", api.GetAuth)
 	apiv1 := r.Group("/api/v1")
+	apiv1.Use(middleware.JWT())
 	{
 		//针对标签管理的操作
 		apiv1.POST("/tags", tag.Create)

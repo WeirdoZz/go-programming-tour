@@ -15,7 +15,7 @@ func GetAuth(ctx *gin.Context) {
 	response := app.NewResponse(ctx)
 	valid, errs := app.BindAndValid(ctx, &param)
 	if !valid {
-		global.Logger.Errorf("app.BindAndValid errs:%v", errs)
+		global.Logger.Errorf(ctx, "app.BindAndValid errs:%v", errs)
 		errRsp := errcode.InvalidParams.WithDetails(errs.Errors()...)
 		response.ToErrorResponse(errRsp)
 		return
@@ -25,14 +25,14 @@ func GetAuth(ctx *gin.Context) {
 	svc := service.New(ctx.Request.Context())
 	err := svc.CheckAuth(&param)
 	if err != nil {
-		global.Logger.Errorf("svc.CheckAuth err:%v", err)
+		global.Logger.Errorf(ctx, "svc.CheckAuth err:%v", err)
 		response.ToErrorResponse(errcode.UnauthorizedAuthNotExist)
 		return
 	}
 
 	token, err := app.GenerateToken(param.AppKey, param.AppSecret)
 	if err != nil {
-		global.Logger.Errorf("app.GenerateToken err:%v", err)
+		global.Logger.Errorf(ctx, "app.GenerateToken err:%v", err)
 		response.ToErrorResponse(errcode.UnauthorizedTokenGenerate)
 		return
 	}

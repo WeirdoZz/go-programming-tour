@@ -3,6 +3,7 @@ Server:
   HttpPort: 9999
   ReadTimeout: 60
   WriteTimeout: 60
+
 App:
   DefaultPageSize: 10
   MaxPageSize: 100
@@ -16,6 +17,8 @@ App:
     - .jpg
     - .jpeg
     - .png
+  DefaultContextTimeout: 60
+
 Database:
   DBType: mysql
   Username: root
@@ -32,3 +35,13 @@ JWT:
   Secret: eddycjy
   Issuer: blog-service
   Expire: 7200
+
+Email:
+  Host: smtp.qq.com
+  Port: 465
+  UserName: 1834105685@qq.com
+  Password: oxqqeqowonxydafe
+  IsSSL: true
+  From: 1834105685@qq.com
+  To:
+    - weirdo@shu.edu.cn
